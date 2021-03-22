@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 import 'package:todoooo/main.dart';
 
-
 class SplashScreen extends StatefulWidget {
   final Color backgroundColor = Colors.black12;
   final TextStyle styleTextUnderTheLoader = TextStyle(
@@ -14,7 +13,7 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  final splashDelay = 2;
+  final splashDelay = 1;
 
   @override
   void initState() {
@@ -35,7 +34,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(backgroundColor: Colors.black12,
+    return Scaffold(
+      backgroundColor: Colors.black12,
       body: InkWell(
         child: Stack(
           fit: StackFit.expand,
@@ -51,7 +51,13 @@ class _SplashScreenState extends State<SplashScreen> {
                     children: <Widget>[
                       Padding(
                         padding: EdgeInsets.only(top: 70.0),
-                        child: Text('To-Do',style: TextStyle(fontSize: 80,fontWeight: FontWeight.w500,color: Color(0xff2EBDD8)),),
+                        child: Text(
+                          'To-Do',
+                          style: TextStyle(
+                              fontSize: 80,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xff2EBDD8)),
+                        ),
                       ),
                     ],
                   )),
@@ -63,7 +69,14 @@ class _SplashScreenState extends State<SplashScreen> {
                       Container(
                         height: 10,
                       ),
-                      Text('By Hemant',style: TextStyle(fontSize: 20,letterSpacing: 2,fontWeight: FontWeight.w700,color: Color(0xff2EBDD8)),)
+                      Text(
+                        'By Hemant',
+                        style: TextStyle(
+                            fontSize: 20,
+                            letterSpacing: 2,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xff2EBDD8)),
+                      )
                     ],
                   ),
                 ),
