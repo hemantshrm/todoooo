@@ -1,6 +1,6 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:todoooo/TaskModel.dart';
+import 'package:todoooo/component/TaskModel.dart';
 
 class DatabaseHelper {
   static final _databaseName = "todo.db";
