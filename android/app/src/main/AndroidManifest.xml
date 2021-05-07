@@ -4,6 +4,7 @@
     <uses-permission android:name="android.permission.USE_FINGERPRINT"/>
    <application
         android:label="To-Duh"
+        android:name="androidx.multidex.MultiDexApplication" >
         android:icon="@mipmap/ic_launcher">
         android:requestLegacyExternalStorage="true"
         <activity

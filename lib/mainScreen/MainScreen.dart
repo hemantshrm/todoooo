@@ -1,296 +1,352 @@
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:circular_check_box/circular_check_box.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:todoooo/component/TaskModel.dart';
-import 'package:todoooo/controller/pickimage.dart';
-import 'package:todoooo/database_service/database.dart';
-import 'package:vibration/vibration.dart';
+import 'package:lottie/lottie.dart';
+import 'package:todoooo/chatScreen/views/chat_screen.dart';
+import 'package:todoooo/login_Screen/home_controller.dart';
+import 'package:todoooo/login_Screen/loginScreen.dart';
+
 import '../constants.dart';
 
-class MainScreen extends StatefulWidget {
+class TodoScreen extends StatefulWidget {
   static String id = 'main_screen';
   @override
-  _MainScreenState createState() => _MainScreenState();
+  _TodoScreenState createState() => _TodoScreenState();
 }
 
-class _MainScreenState extends State<MainScreen>
-    with SingleTickerProviderStateMixin {
-  List<Todo> taskList = [];
-  TextEditingController textController = new TextEditingController();
-  ImageController imageController = Get.put(ImageController());
-  String newTaskTitle;
+class _TodoScreenState extends State<TodoScreen> with TickerProviderStateMixin {
+  TextEditingController todoController = TextEditingController();
+  GetStorage userInfo = GetStorage();
+  var firebaseAuth = FirebaseAuth.instance;
+  CollectionReference todoServer =
+      FirebaseFirestore.instance.collection('todos');
 
-  @override
-  void initState() {
-    super.initState();
-    DatabaseHelper.instance.queryAllRows().then((value) {
-      setState(() {
-        value.forEach((element) {
-          taskList.add(Todo(id: element['id'], title: element["title"]));
-        });
-      });
-    }).catchError((error) {
-      print(error);
-    });
+  AnimationController controller;
+
+  // getUserAuthBiometric() async {
+  //   userCred = await userInfo.read('email') ?? null;
+  //   if (userCred != null) {
+  //     if (!userCred.checkBiometric) {
+  //       showAlertDialogBiometric(context, userCred.checkBiometric,
+  //           okPressed: (colorHandle) {
+  //         this.setState(() {
+  //           userCred.checkBiometric = true;
+  //         });
+  //         _authenticate(userCred);
+  //       }, cancelPressed: (colorHandle) {
+  //         Navigator.of(context, rootNavigator: true).pop();
+  //       }, disabledPressed: () async {
+  //         this.setState(() {
+  //           userCred.checkBiometric = false;
+  //         });
+  //
+  //         userCred = await widget._userInfo.saveCredentials(userCred);
+  //         Navigator.of(context, rootNavigator: true).pop();
+  //       });
+  //     }
+  //   }
+  // }
+  Future<void> delete(String id) {
+    return todoServer.doc(id).delete().then((value) => print("Deleted"));
   }
 
-  String greeting() {
-    var hour = DateTime.now().hour;
-    if (hour < 12) {
-      return 'Morning,';
-    }
-    if (hour < 17) {
-      return 'Afternoon,';
-    }
-    return 'Evening,';
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   controller = AnimationController(
+  //     duration: Duration(seconds: 3),
+  //     vsync: this,
+  //   );
+  //   controller.addListener(() {
+  //     setState(() {});
+  //   });
+  // }
+  //
+  // @override
+  // void dispose() {
+  //   controller.dispose();
+  //   super.dispose();
+  // }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        floatingActionButton: GestureDetector(
-          onLongPress: () {
-            Vibration.vibrate(duration: 30, amplitude: 50);
-            imageController.showPicker(onselect: (sel_Image) {
-              if (sel_Image != null) {
-                this.setState(() {
-                  imageController.image = sel_Image;
-                });
-              }
-            });
-          },
-          child: FloatingActionButton(
-            onPressed: () {
-              Vibration.vibrate(duration: 30, amplitude: 50);
-              Get.bottomSheet(
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 30),
-                  decoration: BoxDecoration(
-                    color: AppColors.APP_BG_COLOR,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(40),
-                      topRight: Radius.circular(40),
-                    ),
-                  ),
-                  height: Get.height / 2,
-                  width: Get.width,
-                  child: ListView(
-                    children: <Widget>[
-                      SizedBox(height: 20),
-                      Center(
-                          child: Text(
-                        'Add Task',
-                        style: TextStyle(
-                          fontSize: 40,
-                          color: AppColors.TextColour,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 3,
-                        ),
-                      )),
-                      SizedBox(height: 30),
-                      TextField(
-                          controller: textController,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              color: AppColors.TextColour, fontSize: 20),
-                          showCursor: false,
-                          autofocus: true,
-                          decoration: InputDecoration(
-                              suffix: CircleAvatar(
-                                backgroundColor: AppColors.appTheme,
-                                child: IconButton(
-                                  color: Colors.white,
-                                  icon: Icon(FontAwesomeIcons.plus),
-                                  onPressed: () {
-                                    Vibration.vibrate(
-                                        duration: 30, amplitude: 50);
-                                    if (newTaskTitle != null) {
-                                      _addToDb();
-                                      textController.clear();
-                                    } else {
-                                      Get.defaultDialog(
-                                          confirm: IconButton(
-                                            icon: Icon(
-                                              Icons.done,
-                                              color: AppColors.appTheme,
-                                            ),
-                                            onPressed: () => Get.back(),
-                                            iconSize: 40,
-                                          ),
-                                          title: 'ERROR',
-                                          textConfirm: 'OK',
-                                          middleText: 'Text Field is Empty');
-                                    }
-                                    Get.back();
-                                  },
-                                ),
-                              ),
-                              focusedBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide.none),
-                              hintText: 'Enter Your Task',
-                              hintStyle: TextStyle(color: Colors.white60)),
-                          onChanged: (newText) {
-                            newTaskTitle = newText;
-                          }),
-                    ],
-                  ),
-                ),
-              );
-            },
-            child: Icon(FontAwesomeIcons.plus),
-            backgroundColor: AppColors.App_COMPLIMENTARY,
+    return WillPopScope(
+      onWillPop: () {
+        // ignore: missing_return
+        SystemNavigator.pop();
+      },
+      child: SafeArea(
+        child: Scaffold(
+          extendBodyBehindAppBar: true,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
           ),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-                flex: 1,
-                child: Stack(
-                  children: [
-                    GestureDetector(
-                      onLongPress: () {
-                        this.setState(() {
-                          imageController.image = null;
-                        });
-                      },
-                      child: Container(
+          drawer: AppDrawer(firebaseAuth: firebaseAuth, userInfo: userInfo),
+          backgroundColor: AppColors.APP_BG_COLOR_light,
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                  flex: 2,
+                  child: Stack(
+                    children: [
+                      Container(
+                        width: Get.width,
+                        height: Get.height,
+                        child: Lottie.asset('images/bg.json',
+                            fit: BoxFit.cover,
+                            frameRate: FrameRate(60),
+                            controller: controller),
                         decoration: BoxDecoration(
-                            image: DecorationImage(
-                                image: imageController.image != null
-                                    ? FileImage(imageController.image)
-                                    : AssetImage("images/bg.jpg"),
-                                fit: BoxFit.cover),
                             borderRadius: BorderRadius.only(
                                 bottomLeft: Radius.circular(60),
                                 bottomRight: Radius.circular(60))),
                       ),
-                    ),
-                    Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text("Good ", style: designStyle),
-                          Text(greeting(), style: designStyle),
-                        ],
-                      ),
-                    ),
-                    Positioned(
-                      right: Get.width / 8,
-                      bottom: 30,
-                      child: Text(
-                        taskList.length == 0
-                            ? 'Currently No Tasks'
-                            : '${taskList.length} Task${taskList.length == 1 ? "" : "s"}',
-                        style: GoogleFonts.montserrat(
-                            letterSpacing: 2,
-                            color: AppColors.TextColour,
-                            fontSize: 25,
-                            fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ],
-                )),
-            SizedBox(
-              height: 30,
-            ),
-            Expanded(
-              flex: 2,
-              child: ListView.builder(
-                physics: BouncingScrollPhysics(
-                    parent: AlwaysScrollableScrollPhysics()),
-                shrinkWrap: true,
-                itemCount: taskList.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 20.0, vertical: 5),
-                    child: Slidable(
-                      actionPane: SlidableDrawerActionPane(),
-                      actions: [
-                        IconSlideAction(
-                            caption: 'Delete',
-                            color: Colors.transparent,
-                            icon: Icons.delete,
-                            foregroundColor: AppColors.App_COMPLIMENTARY,
-                            onTap: () {
-                              _deleteTask(taskList[index].id);
-                            }),
-                      ],
-                      secondaryActions: [
-                        IconSlideAction(
-                            caption: 'Delete',
-                            color: Colors.transparent,
-                            icon: Icons.delete,
-                            foregroundColor: AppColors.App_COMPLIMENTARY,
-                            onTap: () {
-                              _deleteTask(taskList[index].id);
-                            })
-                      ],
-                      child: ListTile(
-                        subtitle: Divider(
-                          color: Colors.white24,
+                      Positioned(
+                          bottom: 80,
+                          left: 20,
+                          child: Text("Welcome ,", style: designStyle)),
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: TypewriterAnimatedTextKit(
+                          speed: Duration(milliseconds: 100),
+                          repeatForever: false,
+                          totalRepeatCount: 1,
+                          text: ['Tasks'],
+                          textStyle: GoogleFonts.ubuntu(
+                              color: AppColors.appTheme,
+                              fontSize: 45.0,
+                              fontWeight: FontWeight.w600),
                         ),
-                        title: Text(
-                          '${taskList[index].title}',
-                          style: TextStyle(
-                              fontSize: 20,
-                              color: taskList[index].isChecked
-                                  ? AppColors.appTheme
-                                  : AppColors.TextColour,
-                              fontWeight: FontWeight.w600,
-                              decoration: taskList[index].isChecked
-                                  ? TextDecoration.lineThrough
-                                  : null,
-                              fontStyle: taskList[index].isChecked
-                                  ? FontStyle.italic
-                                  : FontStyle.normal),
-                        ),
-                        trailing: CircularCheckBox(
-                            value: taskList[index].isChecked,
-                            checkColor: Colors.white,
-                            activeColor: AppColors.appTheme,
-                            inactiveColor: AppColors.App_COMPLIMENTARY,
-                            onChanged: (val) => this.setState(() {
-                                  taskList[index].isChecked =
-                                      !taskList[index].isChecked;
-                                })),
-                        onTap: () {
-                          this.setState(() {
-                            taskList[index].isChecked =
-                                !taskList[index].isChecked;
-                          });
-                        },
                       ),
-                    ),
-                  );
-                },
+                    ],
+                  )),
+              SizedBox(
+                height: 30,
               ),
-            ),
-          ],
+              Expanded(
+                flex: 7,
+                child: StreamBuilder<QuerySnapshot>(
+                    stream: todoServer
+                        .orderBy('timeStamp')
+                        .snapshots(includeMetadataChanges: true),
+                    builder: (BuildContext context,
+                        AsyncSnapshot<QuerySnapshot> snapshot) {
+                      if (snapshot.hasError) {
+                        return Text('Something went wrong');
+                      }
+
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      }
+                      return ListView(
+                        physics: BouncingScrollPhysics(),
+                        children:
+                            snapshot.data.docs.map((DocumentSnapshot document) {
+                          var tasks = document.data()['title'];
+                          var isCompleted = document.data()['isCompleted'];
+                          var time = DateTime.fromMillisecondsSinceEpoch(
+                              document.data()['timeStamp'],
+                              isUtc: true);
+
+                          return Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 10.0, vertical: 10),
+                            child: Slidable(
+                              actionPane: SlidableDrawerActionPane(),
+                              actions: [
+                                IconSlideAction(
+                                    caption: 'Delete',
+                                    color: Colors.transparent,
+                                    icon: Icons.delete,
+                                    foregroundColor:
+                                        AppColors.App_COMPLIMENTARY,
+                                    onTap: () => delete(document.id)),
+                              ],
+                              secondaryActions: [
+                                IconSlideAction(
+                                    caption: 'Delete',
+                                    color: Colors.transparent,
+                                    icon: Icons.delete,
+                                    foregroundColor:
+                                        AppColors.App_COMPLIMENTARY,
+                                    onTap: () => delete(document.id))
+                              ],
+                              child: Material(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                child: ListTile(
+                                  subtitle: Text(
+                                    time.toString(),
+                                    softWrap: true,
+                                    style: GoogleFonts.ubuntu(
+                                        fontSize: 10,
+                                        color: AppColors.TEXTCOLOR_DARK),
+                                  ),
+                                  title: Text(
+                                    tasks,
+                                    style: GoogleFonts.ubuntu(
+                                      fontSize: 17,
+                                      color: isCompleted
+                                          ? Color(0xffB7BABF)
+                                          : AppColors.TEXTCOLOR_DARK,
+                                      fontWeight: FontWeight.w600,
+                                      decoration: isCompleted
+                                          ? TextDecoration.lineThrough
+                                          : null,
+                                    ),
+                                  ),
+                                  trailing: CircularCheckBox(
+                                      value: isCompleted,
+                                      checkColor: Colors.white,
+                                      activeColor: AppColors.appTheme,
+                                      inactiveColor:
+                                          AppColors.App_COMPLIMENTARY,
+                                      onChanged: (val) => this.setState(() {
+                                            isCompleted = !isCompleted;
+                                            todoServer.doc(document.id).update(
+                                                {'isCompleted': isCompleted});
+                                          })),
+                                  onTap: () {
+                                    this.setState(() {
+                                      isCompleted = !isCompleted;
+                                      todoServer
+                                          .doc(document.id)
+                                          .update({'isCompleted': isCompleted});
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      );
+                    }),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Material(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(30),
+                  elevation: 6,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 17),
+                    child: TextField(
+                        style:
+                            GoogleFonts.ubuntu(color: AppColors.TEXTCOLOR_DARK),
+                        controller: todoController,
+                        decoration: InputDecoration(
+                            suffixIcon: IconButton(
+                              icon: Icon(FontAwesomeIcons.arrowCircleUp),
+                              onPressed: () {
+                                todoController.text.isEmpty
+                                    ? null
+                                    : todoServer.add({
+                                        'userid': firebaseAuth.currentUser.uid,
+                                        'title': todoController.text,
+                                        'isCompleted': false,
+                                        'timeStamp': DateTime.now()
+                                            .toUtc()
+                                            .millisecondsSinceEpoch
+                                      });
+                                todoController.clear();
+                                Get.offAndToNamed(TodoScreen.id);
+                              },
+                            ),
+                            border: InputBorder.none,
+                            hintText: 'Write new task',
+                            focusedBorder: InputBorder.none,
+                            hintStyle: GoogleFonts.ubuntu(
+                                fontSize: 16,
+                                color: AppColors.TEXTCOLOR_DARK))),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
+}
 
-  void _deleteTask(int id) async {
-    await DatabaseHelper.instance.delete(id);
-    setState(() {
-      taskList.removeWhere((element) => element.id == id);
-    });
+class AppDrawer extends GetView<HomeController> {
+  AppDrawer({
+    @required this.firebaseAuth,
+    @required this.userInfo,
+  });
+
+  final FirebaseAuth firebaseAuth;
+  final GetStorage userInfo;
+  HomeController _controller = Get.put(HomeController());
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      child: ListView(
+        children: [
+          DrawerHeader(
+              child: Column(
+            children: [
+              CircleAvatar(
+                backgroundColor: AppColors.appTheme,
+                radius: 50,
+              ),
+              Spacer(),
+              Text(
+                firebaseAuth.currentUser.email,
+                style: designStyle.copyWith(
+                    fontWeight: FontWeight.w500, fontSize: 19),
+              )
+            ],
+          )),
+          CustomTiles(Icon(Icons.message), 'Chat Screen', () {
+            Get.to(() => ChatViewScreen());
+          }),
+          CustomTiles(Icon(FontAwesomeIcons.featherAlt), 'Todo Screen', () {
+            Get.offAndToNamed(TodoScreen.id);
+          }),
+          CustomTiles(Icon(FontAwesomeIcons.lock), 'Change Password', () {
+            _controller.getUserName();
+          }),
+          CustomTiles(
+            Icon(FontAwesomeIcons.signOutAlt),
+            'Logout',
+            () async {
+              firebaseAuth.signOut();
+              userInfo.remove('email');
+              Get.offAndToNamed(LoginScreen.id);
+            },
+          ),
+        ],
+      ),
+    );
   }
+}
 
-  void _addToDb() async {
-    String task = textController.text;
-    var id = await DatabaseHelper.instance.insert(Todo(title: task));
-    setState(() {
-      taskList.insert(0, Todo(id: id, title: task));
-    });
+class CustomTiles extends StatelessWidget {
+  CustomTiles(this.icon, this.title, this.onPress);
+
+  final String title;
+  final Icon icon;
+  final Function onPress;
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 10.0),
+      child: ListTile(
+          leading: icon,
+          title: Text(title, style: designStyle.copyWith(fontSize: 18)),
+          onTap: onPress),
+    );
   }
 }
