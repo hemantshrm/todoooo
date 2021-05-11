@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
-import 'package:todoooo/mainScreen/MainScreen.dart';
+import 'package:todoooo/todoScreen/Todo_Screen.dart';
 
 class HomeController extends GetxController {
   final RoundedLoadingButtonController btnController =
@@ -19,6 +19,8 @@ class HomeController extends GetxController {
   var signUpPass = TextEditingController();
 
   CollectionReference users = FirebaseFirestore.instance.collection('users');
+  CollectionReference todoServer =
+      FirebaseFirestore.instance.collection('todos');
   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
   void resetLoader() async {
@@ -40,6 +42,15 @@ class HomeController extends GetxController {
     }).then((value) {
       Get.toNamed(TodoScreen.id);
     }).catchError((error) => print("Failed to add user: $error"));
+  }
+
+  Future<void> delete(String id) {
+    return todoServer
+        .doc(firebaseAuth.currentUser.uid)
+        .collection('list')
+        .doc(id)
+        .delete()
+        .then((value) => print("Deleted"));
   }
 
   void getUserName() async {

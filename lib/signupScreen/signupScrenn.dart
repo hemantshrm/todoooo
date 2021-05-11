@@ -8,7 +8,6 @@ import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:todoooo/constants.dart';
 import 'package:todoooo/login_Screen/home_controller.dart';
 import 'package:todoooo/login_Screen/loginScreen.dart';
-import 'package:todoooo/mainScreen/MainScreen.dart';
 
 class SignUpScreen extends StatefulWidget {
   @override

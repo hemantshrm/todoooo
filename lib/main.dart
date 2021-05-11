@@ -1,11 +1,11 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:todoooo/constants.dart';
 import 'package:todoooo/login_Screen/loginScreen.dart';
-import 'package:todoooo/mainScreen/MainScreen.dart';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:todoooo/todoScreen/Todo_Screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

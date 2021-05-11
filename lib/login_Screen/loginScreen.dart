@@ -14,8 +14,9 @@ import 'package:rounded_loading_button/rounded_loading_button.dart';
 
 import 'package:todoooo/component/auth_controller.dart';
 import 'package:todoooo/login_Screen/home_controller.dart';
-import 'package:todoooo/mainScreen/MainScreen.dart';
+
 import 'package:todoooo/signupScreen/signupScrenn.dart';
+import 'package:todoooo/todoScreen/Todo_Screen.dart';
 import '../constants.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -267,16 +268,12 @@ class LoginFields extends StatelessWidget {
                 color: AppColors.appTheme,
                 fontSize: 16,
               ),
-              border: UnderlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(4.0)),
-                borderSide: BorderSide(color: AppColors.appTheme),
-              ),
+              border: InputBorder.none,
               prefixIcon: icon,
               suffixIcon: suffixIcon,
               hintText: hintText,
               contentPadding: EdgeInsets.only(left: 2, bottom: 4),
-              focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.appTheme)),
+              focusedBorder: InputBorder.none,
               hintStyle: GoogleFonts.ubuntu(fontSize: 16))),
     );
   }

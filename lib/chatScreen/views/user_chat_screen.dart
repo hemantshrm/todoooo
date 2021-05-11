@@ -41,99 +41,102 @@ class _ChatState extends State<Chat> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text('Himanshu'),
-          backgroundColor: AppColors.appTheme,
-          elevation: 6,
-          centerTitle: true,
-          actions: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Icon(Icons.phone),
-            )
-          ],
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              Expanded(
-                child: StreamBuilder<QuerySnapshot>(
-                    stream: messages
-                        .orderBy('timeStamp', descending: true)
-                        .snapshots(includeMetadataChanges: true),
-                    builder: (BuildContext context,
-                        AsyncSnapshot<QuerySnapshot> snapshot) {
-                      if (snapshot.hasError) {
-                        return Text('Something went wrong');
-                      }
+    return Scaffold(
+      backgroundColor: AppColors.appTheme,
+      appBar: AppBar(
+        title: Text('User'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+      ),
+      body: Container(
+        padding: EdgeInsets.all(10),
+        decoration: BoxDecoration(
+            color: AppColors.APP_BG_COLOR_DARK,
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(50), topRight: Radius.circular(50))),
+        child: Column(
+          children: [
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                  stream: messages
+                      .orderBy('timeStamp', descending: true)
+                      .snapshots(includeMetadataChanges: true),
+                  builder: (BuildContext context,
+                      AsyncSnapshot<QuerySnapshot> snapshot) {
+                    if (snapshot.hasError) {
+                      return Text('Something went wrong');
+                    }
 
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
-                      }
-                      return ListView(
-                        reverse: true,
-                        physics: BouncingScrollPhysics(
-                            parent: NeverScrollableScrollPhysics()),
-                        children:
-                            snapshot.data.docs.map((DocumentSnapshot document) {
-                          var text = document.data()['text'];
-                          var sender = document.data()['sender'];
-                          var time = document.data()['timeStamp'];
-                          final currentUser = loggedInUser.email;
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator());
+                    }
+                    return ListView(
+                      reverse: true,
+                      physics: BouncingScrollPhysics(
+                          parent: NeverScrollableScrollPhysics()),
+                      children:
+                          snapshot.data.docs.map((DocumentSnapshot document) {
+                        var text = document.data()['text'];
+                        var sender = document.data()['sender'];
+                        var time = document.data()['timeStamp'];
+                        final currentUser = loggedInUser.email;
 
-                          isMe = currentUser == sender;
+                        isMe = currentUser == sender;
 
-                          return Column(
-                            crossAxisAlignment: isMe
-                                ? CrossAxisAlignment.end
-                                : CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                margin: EdgeInsets.symmetric(vertical: 5),
-                                child: Material(
-                                  elevation: 6,
-                                  color: isMe
-                                      ? AppColors.appTheme
-                                      : Colors.blueGrey,
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: isMe
-                                        ? Radius.circular(30)
-                                        : Radius.circular(0),
-                                    topRight: isMe
-                                        ? Radius.circular(0)
-                                        : Radius.circular(30),
-                                    bottomLeft: Radius.circular(30),
-                                    bottomRight: Radius.circular(30),
-                                  ),
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 20.0, vertical: 10),
-                                    child: Text(
-                                      text,
-                                      style: GoogleFonts.ubuntu(
-                                          color: AppColors.TextColour_light),
-                                    ),
+                        return Column(
+                          crossAxisAlignment: isMe
+                              ? CrossAxisAlignment.end
+                              : CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              sender,
+                              style: designStyle.copyWith(fontSize: 10),
+                            ),
+                            Container(
+                              margin: EdgeInsets.symmetric(vertical: 5),
+                              child: Material(
+                                elevation: 6,
+                                color:
+                                    isMe ? AppColors.appTheme : Colors.blueGrey,
+                                borderRadius: BorderRadius.only(
+                                  topLeft: isMe
+                                      ? Radius.circular(30)
+                                      : Radius.circular(0),
+                                  topRight: isMe
+                                      ? Radius.circular(0)
+                                      : Radius.circular(30),
+                                  bottomLeft: Radius.circular(30),
+                                  bottomRight: Radius.circular(30),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 20.0, vertical: 10),
+                                  child: Text(
+                                    text,
+                                    style: GoogleFonts.ubuntu(
+                                        color: AppColors.TextColour_light),
                                   ),
                                 ),
                               ),
-                            ],
-                          );
-                        }).toList(),
-                      );
-                    }),
-              ),
-              Container(
-                decoration: BoxDecoration(
-                    color: AppColors.TEXTCOLOR_DARK,
-                    borderRadius: BorderRadius.circular(20)),
-                padding: EdgeInsets.all(2),
+                            ),
+                          ],
+                        );
+                      }).toList(),
+                    );
+                  }),
+            ),
+            Container(
+              margin: EdgeInsets.only(top: 10),
+              decoration: BoxDecoration(
+                  color: AppColors.TEXTCOLOR_DARK,
+                  borderRadius: BorderRadius.circular(20)),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 8.0),
                 child: LoginFields(
                   hidetext: false,
                   color: AppColors.TextColour_light,
-                  hintText: " Write your message",
+                  hintText: "Write your message",
                   textEditingController: controller.chatting,
                   suffixIcon: IconButton(
                     icon: Icon(FontAwesomeIcons.arrowCircleRight),
@@ -150,8 +153,8 @@ class _ChatState extends State<Chat> {
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
