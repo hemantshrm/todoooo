@@ -12,6 +12,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:todoooo/chatScreen/views/chat_screen.dart';
+import 'package:todoooo/component/pickimage.dart';
 import 'package:todoooo/login_Screen/home_controller.dart';
 import 'package:todoooo/login_Screen/loginScreen.dart';
 
@@ -79,30 +80,29 @@ class _TodoScreenState extends State<TodoScreen> with TickerProviderStateMixin {
             ),
           ],
         ),
-        drawer: AppDrawer(firebaseAuth: firebaseAuth, userInfo: userInfo),
         backgroundColor:
             status ? AppColors.APP_BG_COLOR_light : AppColors.APP_BG_COLOR_DARK,
         body: Column(
           children: [
-            Expanded(
-                flex: 2,
-                child: Stack(
-                  children: [
-                    Align(
-                      alignment: Alignment.bottomCenter,
-                      child: TypewriterAnimatedTextKit(
-                        speed: Duration(milliseconds: 200),
-                        repeatForever: false,
-                        totalRepeatCount: 1,
-                        text: ['Tasks'],
-                        textStyle: GoogleFonts.ubuntu(
-                            color: AppColors.appTheme,
-                            fontSize: 45.0,
-                            fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ],
-                )),
+            // Expanded(
+            //     flex: 2,
+            //     child: Stack(
+            //       children: [
+            //         Align(
+            //           alignment: Alignment.bottomCenter,
+            //           child: TypewriterAnimatedTextKit(
+            //             speed: Duration(milliseconds: 200),
+            //             repeatForever: false,
+            //             totalRepeatCount: 1,
+            //             text: ['Tasks'],
+            //             textStyle: GoogleFonts.ubuntu(
+            //                 color: AppColors.appTheme,
+            //                 fontSize: 45.0,
+            //                 fontWeight: FontWeight.w600),
+            //           ),
+            //         ),
+            //       ],
+            //     )),
             Expanded(
               flex: 7,
               child: StreamBuilder<QuerySnapshot>(
@@ -118,30 +118,7 @@ class _TodoScreenState extends State<TodoScreen> with TickerProviderStateMixin {
                     }
                     try {
                       if (snapshot.data.docs.isEmpty) {
-                        return Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Image.asset('images/noTask.png'),
-                            Text(
-                              'No task on the horizon !',
-                              style: designStyle.copyWith(
-                                  fontSize: 20,
-                                  color: status
-                                      ? AppColors.TEXTCOLOR_DARK
-                                      : AppColors.TextColour_light),
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            Text(
-                              'Add a task or enjoy your day off.',
-                              style: designStyle.copyWith(
-                                  fontSize: 13,
-                                  color:
-                                      status ? Colors.black38 : Colors.white38),
-                            )
-                          ],
-                        );
+                        return IfEmpty(status: status);
                       }
                     } catch (e) {
                       print(e);
@@ -154,11 +131,12 @@ class _TodoScreenState extends State<TodoScreen> with TickerProviderStateMixin {
                       physics: BouncingScrollPhysics(),
                       children:
                           snapshot.data.docs.map((DocumentSnapshot document) {
-                        var tasks = document.data()['title'];
-                        var isCompleted = document.data()['isCompleted'];
+                        String tasks = document.data()['title'];
+                        bool isCompleted = document.data()['isCompleted'];
                         var time = DateTime.fromMillisecondsSinceEpoch(
-                            document.data()['timeStamp'],
-                            isUtc: true);
+                          document.data()['timeStamp'],
+                          isUtc: true,
+                        );
 
                         return Padding(
                           padding: EdgeInsets.symmetric(
@@ -188,7 +166,7 @@ class _TodoScreenState extends State<TodoScreen> with TickerProviderStateMixin {
                               borderRadius: BorderRadius.circular(10),
                               child: ListTile(
                                 subtitle: Text(
-                                  time.toString(),
+                                  _controller.getTime(time.toString()),
                                   softWrap: true,
                                   style: GoogleFonts.ubuntu(
                                       fontSize: 10,
@@ -295,6 +273,41 @@ class _TodoScreenState extends State<TodoScreen> with TickerProviderStateMixin {
   }
 }
 
+class IfEmpty extends StatelessWidget {
+  const IfEmpty({
+    Key key,
+    @required this.status,
+  }) : super(key: key);
+
+  final bool status;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Image.asset('images/noTask.png'),
+        Text(
+          'No task on the horizon !',
+          style: designStyle.copyWith(
+              fontSize: 20,
+              color: status
+                  ? AppColors.TEXTCOLOR_DARK
+                  : AppColors.TextColour_light),
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        Text(
+          'Add a task or enjoy your day off.',
+          style: designStyle.copyWith(
+              fontSize: 13, color: status ? Colors.black38 : Colors.white38),
+        )
+      ],
+    );
+  }
+}
+
 class AppDrawer extends GetView<HomeController> {
   AppDrawer({
     @required this.firebaseAuth,
@@ -304,6 +317,7 @@ class AppDrawer extends GetView<HomeController> {
   final FirebaseAuth firebaseAuth;
   final GetStorage userInfo;
   HomeController _controller = Get.put(HomeController());
+  ImageController _ImageController = Get.put(ImageController());
 
   @override
   Widget build(BuildContext context) {
@@ -313,9 +327,20 @@ class AppDrawer extends GetView<HomeController> {
           DrawerHeader(
               child: Column(
             children: [
-              CircleAvatar(
-                backgroundColor: AppColors.appTheme,
-                radius: 50,
+              GestureDetector(
+                onTap: () {
+                  _ImageController.showPicker();
+                },
+                child: CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Colors.black,
+                  backgroundImage: NetworkImage(_ImageController.downloadURL),
+                  // child: ClipOval(
+                  //   child: _ImageController.downloadURL != null
+                  //       ? Image.network(_ImageController.downloadURL)
+                  //       : Icon(FontAwesomeIcons.image),
+                  // ),
+                ),
               ),
               Spacer(),
               Text(
@@ -325,24 +350,9 @@ class AppDrawer extends GetView<HomeController> {
               )
             ],
           )),
-          CustomTiles(Icon(Icons.message), 'Chat Screen', () {
-            Get.to(() => ChatViewScreen());
-          }),
-          CustomTiles(Icon(FontAwesomeIcons.featherAlt), 'Todo Screen', () {
-            Get.offAndToNamed(TodoScreen.id);
-          }),
           CustomTiles(Icon(FontAwesomeIcons.lock), 'Change Password', () {
             firebaseAuth.sendPasswordResetEmail(email: userInfo.read('email'));
           }),
-          CustomTiles(
-            Icon(FontAwesomeIcons.signOutAlt),
-            'Logout',
-            () async {
-              firebaseAuth.signOut();
-              userInfo.remove('email');
-              Get.offAndToNamed(LoginScreen.id);
-            },
-          ),
         ],
       ),
     );

@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:todoooo/todoScreen/Todo_Screen.dart';
 
@@ -35,12 +36,12 @@ class HomeController extends GetxController {
 
   Future<void> addUser() {
     return users.doc(firebaseAuth.currentUser.uid).set({
-      'name': name.text,
-      'email': signUpEmail.text,
+      'name': name.text.capitalizeFirst,
+      'email': signUpEmail.text.capitalizeFirst,
       'userId': firebaseAuth.currentUser.uid,
       'createdDate': DateTime.now().toUtc().millisecondsSinceEpoch,
     }).then((value) {
-      Get.toNamed(TodoScreen.id);
+      Get.offAndToNamed(TodoScreen.id);
     }).catchError((error) => print("Failed to add user: $error"));
   }
 
@@ -53,11 +54,19 @@ class HomeController extends GetxController {
         .then((value) => print("Deleted"));
   }
 
-  void getUserName() async {
-    users.get().then((QuerySnapshot querySnapshot) {
-      querySnapshot.docs.forEach((doc) {
-        print(doc["name"]);
-      });
-    });
+  String getTime(String timestamp) {
+    String formattedDate = 'NA';
+    try {
+      formattedDate =
+          DateFormat('EEE dd-MM-yy').add_jm().format(DateTime.parse(timestamp));
+    } catch (e) {
+      print(e);
+    }
+
+    if (formattedDate == 'NA') {
+      return 'NA';
+    } else {
+      return formattedDate;
+    }
   }
 }

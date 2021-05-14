@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:todoooo/constants.dart';
+import 'package:todoooo/dashboard/dashboard.dart';
 import 'package:todoooo/login_Screen/loginScreen.dart';
 
 import 'package:flutter/material.dart';
@@ -27,11 +28,11 @@ class MyApp extends StatelessWidget {
           fontFamily: 'ubuntu',
           iconTheme: IconThemeData(color: AppColors.appTheme),
         ),
-        title: 'To-do',
-        initialRoute: user == null ? LoginScreen.id : TodoScreen.id,
+        initialRoute: user == null ? LoginScreen.id : Dashboard.id,
         routes: <String, WidgetBuilder>{
           TodoScreen.id: (context) => TodoScreen(),
           LoginScreen.id: (context) => LoginScreen(),
+          Dashboard.id: (context) => Dashboard(),
         });
   }
 }

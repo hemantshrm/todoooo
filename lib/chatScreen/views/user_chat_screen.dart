@@ -23,6 +23,8 @@ class _ChatState extends State<Chat> {
   final _firebase = FirebaseAuth.instance;
   User loggedInUser;
   bool isMe;
+  var chattingUser = Get.arguments[1];
+  var chattingUserID = Get.arguments[0];
 
   void getCurrentUser() async {
     try {
@@ -39,12 +41,18 @@ class _ChatState extends State<Chat> {
     getCurrentUser();
   }
 
+  String getConversationID(String userID, String peerID) {
+    return userID.hashCode <= peerID.hashCode
+        ? userID + '_' + peerID
+        : peerID + '_' + userID;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.appTheme,
       appBar: AppBar(
-        title: Text('User'),
+        title: Text(chattingUser),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
@@ -60,6 +68,9 @@ class _ChatState extends State<Chat> {
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                   stream: messages
+                      .doc(getConversationID(
+                          _firebase.currentUser.uid, chattingUserID))
+                      .collection('chat')
                       .orderBy('timeStamp', descending: true)
                       .snapshots(includeMetadataChanges: true),
                   builder: (BuildContext context,
@@ -80,8 +91,8 @@ class _ChatState extends State<Chat> {
                         var text = document.data()['text'];
                         var sender = document.data()['sender'];
                         var time = document.data()['timeStamp'];
-                        final currentUser = loggedInUser.email;
 
+                        final currentUser = loggedInUser.email;
                         isMe = currentUser == sender;
 
                         return Column(
@@ -90,7 +101,7 @@ class _ChatState extends State<Chat> {
                               : CrossAxisAlignment.start,
                           children: [
                             Text(
-                              sender,
+                              isMe ? 'You' : chattingUser,
                               style: designStyle.copyWith(fontSize: 10),
                             ),
                             Container(
@@ -136,16 +147,23 @@ class _ChatState extends State<Chat> {
                 child: LoginFields(
                   hidetext: false,
                   color: AppColors.TextColour_light,
-                  hintText: "Write your message",
+                  hintText: "Type your message...",
                   textEditingController: controller.chatting,
                   suffixIcon: IconButton(
-                    icon: Icon(FontAwesomeIcons.arrowCircleRight),
+                    icon: Icon(Icons.send_rounded),
                     onPressed: () {
                       controller.chatting.text.isEmpty
                           ? null
-                          : messages.add({
-                              'text': controller.chatting.text,
+                          : messages
+                              .doc(getConversationID(
+                                  _firebase.currentUser.uid, chattingUserID))
+                              .collection('chat')
+                              .add({
+                              'text': controller.chatting.text.capitalizeFirst,
                               'sender': loggedInUser.email,
+                              'read': false,
+                              'idTo': chattingUserID,
+                              'senderID': _firebase.currentUser.uid,
                               'timeStamp': DateTime.now()
                             });
                       controller.chatting.clear();
