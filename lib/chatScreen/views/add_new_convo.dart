@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ class NewConvo extends StatelessWidget {
   GetStorage userInfo = GetStorage();
   var firebaseAuth = FirebaseAuth.instance;
   CollectionReference users = FirebaseFirestore.instance.collection('users');
+
   bool myself;
   @override
   Widget build(BuildContext context) {
@@ -43,6 +45,7 @@ class NewConvo extends StatelessWidget {
                 children: snapshot.data.docs.map((DocumentSnapshot document) {
                   var name = document.data()['name'];
                   var userId = document.data()['userId'];
+                  var dp = document.data()['dp'];
                   final currentUserId = firebaseAuth.currentUser.uid;
                   myself = currentUserId == userId;
 
@@ -59,6 +62,16 @@ class NewConvo extends StatelessWidget {
                                 ),
                                 leading: CircleAvatar(
                                   maxRadius: 25,
+                                  child: CachedNetworkImage(
+                                    imageUrl: dp,
+                                    fit: BoxFit.fill,
+                                    progressIndicatorBuilder: (context, url,
+                                            downloadProgress) =>
+                                        CircularProgressIndicator(
+                                            value: downloadProgress.progress),
+                                    errorWidget: (context, url, error) =>
+                                        Icon(Icons.error),
+                                  ),
                                 ),
                                 onTap: () {
                                   Get.to(

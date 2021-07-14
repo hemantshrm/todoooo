@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/material.dart';
@@ -17,8 +18,9 @@ enum AppState {
 class ImageController extends GetxController {
   File image;
   var state = AppState.free.obs;
-  String downloadURL;
+  var downloadURL = ''.obs;
   final picker = ImagePicker();
+  CollectionReference users = FirebaseFirestore.instance.collection('users');
   firebase_storage.FirebaseStorage storage =
       firebase_storage.FirebaseStorage.instance;
   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
@@ -45,10 +47,9 @@ class ImageController extends GetxController {
     String downloadURL = await storage
         .ref('uploads/${firebaseAuth.currentUser.uid}/dp')
         .getDownloadURL();
-    this.downloadURL = downloadURL;
-    if (downloadURL == null) {
-      Get.snackbar('error', 'error in loading');
-    } else {}
+    this.downloadURL.value = downloadURL;
+
+    await users.doc(firebaseAuth.currentUser.uid).update({'dp': downloadURL});
   }
 
   showPicker() {

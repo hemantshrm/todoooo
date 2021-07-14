@@ -6,6 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:todoooo/constants.dart';
 import 'package:todoooo/login_Screen/home_controller.dart';
 import 'package:todoooo/login_Screen/loginScreen.dart';
@@ -90,7 +91,10 @@ class _ChatState extends State<Chat> {
                           snapshot.data.docs.map((DocumentSnapshot document) {
                         var text = document.data()['text'];
                         var sender = document.data()['sender'];
-                        var time = document.data()['timeStamp'];
+                        var time = DateTime.fromMillisecondsSinceEpoch(
+                          document.data()['timeStamp'],
+                          isUtc: true,
+                        );
 
                         final currentUser = loggedInUser.email;
                         isMe = currentUser == sender;
@@ -101,7 +105,7 @@ class _ChatState extends State<Chat> {
                               : CrossAxisAlignment.start,
                           children: [
                             Text(
-                              isMe ? 'You' : chattingUser,
+                              isMe ? '' : chattingUser,
                               style: designStyle.copyWith(fontSize: 10),
                             ),
                             Container(
@@ -123,10 +127,24 @@ class _ChatState extends State<Chat> {
                                 child: Padding(
                                   padding: EdgeInsets.symmetric(
                                       horizontal: 20.0, vertical: 10),
-                                  child: Text(
-                                    text,
-                                    style: GoogleFonts.ubuntu(
-                                        color: AppColors.TextColour_light),
+                                  child: Wrap(
+                                    spacing: 40,
+                                    children: [
+                                      Text(
+                                        text,
+                                        style: GoogleFonts.ubuntu(
+                                            fontSize: 15,
+                                            color: AppColors.TextColour_light),
+                                      ),
+                                      Text(
+                                        controller
+                                            .getTime_forChat(time.toString()),
+                                        style: GoogleFonts.ubuntu(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 12,
+                                            color: Colors.black),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
@@ -164,7 +182,8 @@ class _ChatState extends State<Chat> {
                               'read': false,
                               'idTo': chattingUserID,
                               'senderID': _firebase.currentUser.uid,
-                              'timeStamp': DateTime.now()
+                              'timeStamp':
+                                  DateTime.now().toUtc().millisecondsSinceEpoch
                             });
                       controller.chatting.clear();
                     },

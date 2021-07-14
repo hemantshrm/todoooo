@@ -9,10 +9,10 @@ import 'package:todoooo/chatScreen/views/add_new_convo.dart';
 import '../../constants.dart';
 
 class ChatViewScreen extends StatelessWidget {
-  ChatViewScreen();
-  GetStorage userInfo = GetStorage();
-  var firebaseAuth = FirebaseAuth.instance;
-  CollectionReference users = FirebaseFirestore.instance.collection('users');
+  final userInfo = GetStorage();
+  final firebaseAuth = FirebaseAuth.instance;
+  final CollectionReference users =
+      FirebaseFirestore.instance.collection('users');
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,14 +37,12 @@ class ChatViewScreen extends StatelessWidget {
             Expanded(
                 child: Container(
               alignment: Alignment.bottomLeft,
-              padding: EdgeInsets.symmetric(
-                horizontal: 20,
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: Text(
+                'All Chat\'s',
+                textScaleFactor: 1.5,
+                style: designStyle.copyWith(fontWeight: FontWeight.w500),
               ),
-              // child: Text(
-              //   'Chat\'s',
-              //   textScaleFactor: 2.3,
-              //   style: designStyle.copyWith(fontWeight: FontWeight.w500),
-              // ),
             )),
             Expanded(
               flex: 4,

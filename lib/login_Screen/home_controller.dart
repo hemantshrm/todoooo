@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:todoooo/todoScreen/Todo_Screen.dart';
@@ -23,6 +24,7 @@ class HomeController extends GetxController {
   CollectionReference todoServer =
       FirebaseFirestore.instance.collection('todos');
   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  GetStorage userInfoStorage = GetStorage();
 
   void resetLoader() async {
     Timer(Duration(seconds: 2), () {
@@ -40,6 +42,7 @@ class HomeController extends GetxController {
       'email': signUpEmail.text.capitalizeFirst,
       'userId': firebaseAuth.currentUser.uid,
       'createdDate': DateTime.now().toUtc().millisecondsSinceEpoch,
+      'dp': ''
     }).then((value) {
       Get.offAndToNamed(TodoScreen.id);
     }).catchError((error) => print("Failed to add user: $error"));
@@ -54,11 +57,26 @@ class HomeController extends GetxController {
         .then((value) => print("Deleted"));
   }
 
-  String getTime(String timestamp) {
+  String getTime_forTODO(String timestamp) {
     String formattedDate = 'NA';
     try {
       formattedDate =
           DateFormat('EEE dd-MM-yy').add_jm().format(DateTime.parse(timestamp));
+    } catch (e) {
+      print(e);
+    }
+
+    if (formattedDate == 'NA') {
+      return 'NA';
+    } else {
+      return formattedDate;
+    }
+  }
+
+  String getTime_forChat(String timestamp) {
+    String formattedDate = 'NA';
+    try {
+      formattedDate = DateFormat('jm').format(DateTime.parse(timestamp));
     } catch (e) {
       print(e);
     }

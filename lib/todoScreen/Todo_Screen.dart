@@ -1,4 +1,5 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:circular_check_box/circular_check_box.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -166,7 +167,7 @@ class _TodoScreenState extends State<TodoScreen> with TickerProviderStateMixin {
                               borderRadius: BorderRadius.circular(10),
                               child: ListTile(
                                 subtitle: Text(
-                                  _controller.getTime(time.toString()),
+                                  _controller.getTime_forTODO(time.toString()),
                                   softWrap: true,
                                   style: GoogleFonts.ubuntu(
                                       fontSize: 10,
@@ -322,57 +323,33 @@ class AppDrawer extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      child: ListView(
-        children: [
-          DrawerHeader(
-              child: Column(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  _ImageController.showPicker();
-                },
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.black,
-                  backgroundImage: NetworkImage(_ImageController.downloadURL),
-                  // child: ClipOval(
-                  //   child: _ImageController.downloadURL != null
-                  //       ? Image.network(_ImageController.downloadURL)
-                  //       : Icon(FontAwesomeIcons.image),
-                  // ),
-                ),
+        child: ListView(
+      children: [
+        CircleAvatar(
+          radius: 80,
+          backgroundColor: Colors.black,
+          child: Obx(
+            () => ClipOval(
+              child: CachedNetworkImage(
+                imageUrl: _ImageController.downloadURL.value,
+                fit: BoxFit.fill,
+                progressIndicatorBuilder: (context, url, downloadProgress) =>
+                    CircularProgressIndicator(value: downloadProgress.progress),
+                errorWidget: (context, url, error) => Icon(Icons.error),
               ),
-              Spacer(),
-              Text(
-                firebaseAuth.currentUser.email,
-                style: designStyle.copyWith(
-                    fontWeight: FontWeight.w500, fontSize: 19),
-              )
-            ],
-          )),
-          CustomTiles(Icon(FontAwesomeIcons.lock), 'Change Password', () {
-            firebaseAuth.sendPasswordResetEmail(email: userInfo.read('email'));
-          }),
-        ],
-      ),
-    );
-  }
-}
-
-class CustomTiles extends StatelessWidget {
-  CustomTiles(this.icon, this.title, this.onPress);
-
-  final String title;
-  final Icon icon;
-  final Function onPress;
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 10.0),
-      child: ListTile(
-          leading: icon,
-          title: Text(title, style: designStyle.copyWith(fontSize: 18)),
-          onTap: onPress),
-    );
+            ),
+          ),
+        ),
+        TextButton(
+            onPressed: () async {
+              _ImageController.showPicker();
+            },
+            child: Text(
+              'Change Profile picture',
+              style:
+                  designStyle.copyWith(fontSize: 15, color: AppColors.appTheme),
+            ))
+      ],
+    ));
   }
 }

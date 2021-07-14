@@ -26,9 +26,10 @@ String greeting() {
   return 'Evening,';
 }
 
+GetStorage userInfo = GetStorage();
+var firebaseAuth = FirebaseAuth.instance;
+
 class _DashboardState extends State<Dashboard> {
-  GetStorage userInfo = GetStorage();
-  var firebaseAuth = FirebaseAuth.instance;
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -52,7 +53,18 @@ class _DashboardState extends State<Dashboard> {
                         userInfo.remove('email');
                         Get.offAndToNamed(LoginScreen.id);
                       },
-                    )
+                    ),
+                    IconButton(
+                        icon: Icon(Icons.lock),
+                        onPressed: () {
+                          firebaseAuth.sendPasswordResetEmail(
+                              email: userInfo.read('email'));
+                          Get.snackbar(
+                            'Success',
+                            'Your new password will be sent to your email ID',
+                            backgroundColor: Colors.white,
+                          );
+                        })
                   ],
                   title: Text("Good ${greeting()}",
                       style: designStyle.copyWith(fontSize: 18)),
